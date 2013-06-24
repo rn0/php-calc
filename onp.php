@@ -469,10 +469,10 @@ class Calc
         //echo "-----------------------------\n";
     }
 
-    /*
-      http://en.wikipedia.org/wiki/Shunting-yard_algorithm
-      http://pl.wikipedia.org/wiki/Odwrotna_notacja_polska
-    */
+    /**
+     * @link http://en.wikipedia.org/wiki/Shunting-yard_algorithm
+     * @link http://pl.wikipedia.org/wiki/Odwrotna_notacja_polska
+     */
     private function convertToRpn()
     {
         $this->tokenizer->tokenize();
@@ -480,81 +480,81 @@ class Calc
         //echo "Converting to postfix notation:\n\n";
 
         foreach ($this->tokenizer as $token) {
-            // Je�li symbol jest liczb�
+            // Jeśli symbol jest liczbą
             if ($token instanceof Number) {
-                // dodaj go do kolejki wyj�cie
+                // dodaj go do kolejki wyjście
                 $this->rpnNotation->enqueue($token);
-            } // Je�li symbol jest funkcj�
+            } // Jeśli symbol jest funkcją
             elseif ($token instanceof Funct) {
-                // w�� go na stos.
+                // włóż go na stos.
                 $this->stack->push($token);
-            } // Je�li symbol jest znakiem oddzielaj�cym argumenty funkcji (np. przecinek):
+            } // Jeśli symbol jest znakiem oddzielającym argumenty funkcji (np. przecinek):
             elseif ($token instanceof Coma) {
-                // Dop�ki najwy�szy element stosu nie jest lewym nawiasem,
+                // Dopóki najwyższy element stosu nie jest lewym nawiasem,
                 $leftBracketExists = false;
                 while (!($this->stack->top() instanceof L_bracket)) {
-                    // zdejmij element ze stosu i dodaj go do kolejki wyj�cie.
+                    // zdejmij element ze stosu i dodaj go do kolejki wyjście.
                     $this->rpnNotation->enqueue($this->stack->pop());
                 }
-                // Je�li lewy nawias nie zosta� napotkany oznacza to,
-                // �e znaki oddzielaj�ce zosta�y postawione w z�ym miejscu lub nawiasy s� �le umieszczone.
+                // Jeśli lewy nawias nie został napotkany oznacza to,
+                // że znaki oddzielające zostały postawione w złym miejscu lub nawiasy są źle umieszczone.
                 if (!($this->stack->top() instanceof L_bracket)) {
                     throw new Exception('Missing left bracket in expression');
                 }
-            } // Je�li symbol jest operatorem, o1
+            } // Jeśli symbol jest operatorem, o1
             elseif ($token instanceof Operator) {
-                // 1) dop�ki na g�rze stosu znajduje si� operator, o2 taki, �e:
+                // 1) dopóki na górze stosu znajduje się operator, o2 taki, że:
                 $stackTop = $this->stack->top();
                 if (isset($stackTop) && $stackTop instanceof Operator) {
-                    // o1 jest ��czny lub lewostronnie ��czny i jego kolejno�� wykonywania jest mniejsza
-                    // lub r�wna kolejno�ci wyk. o2, lub
+                    // o1 jest łączny lub lewostronnie łączny i jego kolejność wykonywania jest mniejsza
+                    // lub równa kolejności wyk. o2, lub
                     $test1 = (in_array($token->associativity(), array('both', 'left')))
                         && ($token->priority() <= $stackTop->priority());
-                    //o1 jest prawostronnie ��czny i jego kolejno�� wykonywania jest mniejsza od o2,
+                    //o1 jest prawostronnie łączny i jego kolejność wykonywania jest mniejsza od o2,
                     $test2 = (in_array($token->associativity(), array('right')))
                         && ($token->priority() < $stackTop->priority());
                     if ($test1 || $test2) {
-                        // zdejmij o2 ze stosu i do�� go do kolejki wyj�ciowej;
+                        // zdejmij o2 ze stosu i dołóż go do kolejki wyjściowej;
                         $this->rpnNotation->enqueue($this->stack->pop());
                     }
                 }
-                // 2) w�� o1 na stos operator�w.
+                // 2) włóż o1 na stos operatorów.
                 $this->stack->push($token);
-            } // Je�eli symbol jest lewym nawiasem
+            } // Jeśeli symbol jest lewym nawiasem
             elseif ($token instanceof L_bracket) {
-                // to w�� go na stos.
+                // to włóż go na stos.
                 $this->stack->push($token);
-            } // Je�eli symbol jest prawym nawiasem
+            } // Jeśeli symbol jest prawym nawiasem
             elseif ($token instanceof R_bracket) {
                 $leftBracketExists = false;
                 while ($operator = $this->stack->pop()) {
-                    // dop�ki symbol na g�rze stosu nie jest lewym nawiasem,
+                    // dopóki symbol na górze stosu nie jest lewym nawiasem,
                     if ($operator instanceof L_bracket) {
                         $leftBracketExists = true;
                         break;
-                    } // to zdejmuj operatory ze stosu i dok�adaj je do kolejki wyj�cie
+                    } // to zdejmuj operatory ze stosu i dokładaj je do kolejki wyjście
                     else {
                         $this->rpnNotation->enqueue($operator);
                     }
                 }
 
-                // Teraz, je�li najwy�szy element na stosie jest funkcj�, tak�e do�� go do kolejki wyj�cie.
+                // Teraz, jeśli najwyższy element na stosie jest funkcją, także dołóż go do kolejki wyjście.
                 if ($this->stack->top() instanceof Funct) {
                     $this->rpnNotation->enqueue($this->stack->pop());
                 }
 
-                // Je�li stos zostanie opr�niony i nie napotkasz lewego nawiasu, oznacza to,
-                // �e nawiasy zosta�y �le umieszczone.
+                // Jeśli stos zostanie opróżniony i nie napotkasz lewego nawiasu, oznacza to,
+                // że nawiasy zostały źle umieszczone.
                 if ($this->stack->isEmpty() && !$leftBracketExists) {
                     throw new Exception('Missing left bracket in expression');
                 }
             }
         }
-        // Je�li nie ma wi�cej symboli do przeczytania, zdejmuj wszystkie symbole ze stosu (je�li jakie� s�)
-        // i dodawaj je do kolejki wyj�cia.
+        // Jeśli nie ma więcej symboli do przeczytania, zdejmuj wszystkie symbole ze stosu (jeśli jakieś są)
+        // i dodawaj je do kolejki wyjścia.
         while ($operator = $this->stack->pop()) {
-            // Powinny to by� wy��cznie operatory,
-            // je�li natrafisz na jaki� nawias, znaczy to, �e nawiasy zosta�y �le umieszczone.
+            // Powinny to być wyłącznie operatory,
+            // jeśli natrafisz na jakiś nawias, znaczy to, że nawiasy zostały źle umieszczone.
             if ($operator instanceof Bracket) {
                 throw new Exception('Mismatched brackets in expression');
             }
