@@ -359,26 +359,6 @@ class Tokenizer implements Iterator
         if (empty($this->expression)) {
             throw new Exception('Expression to tokenize is empty');
         }
-
-        $this->registerObject(null, 'number', '[\\d.]+');
-        $this->registerObject(null, 'l_bracket', '\(');
-        $this->registerObject(null, 'r_bracket', '\)');
-        $this->registerObject(null, 'coma', '\,');
-
-        $this->registerObject('operator', 'minus', '\-');
-        $this->registerObject('operator', 'plus', '\+');
-        $this->registerObject('operator', 'divide', '\/');
-        $this->registerObject('operator', 'multiply', '\*');
-        $this->registerObject('operator', 'power', '\^');
-
-        $this->registerObject('constant', 'pi', 'PI');
-        $this->registerObject('constant', 'e', 'E');
-
-        $this->registerObject('function', 'sin', 'sin');
-        $this->registerObject('function', 'cos', 'cos');
-        $this->registerObject('function', 'tg', 'tg');
-        $this->registerObject('function', 'ctg', 'ctg');
-        $this->registerObject('function', 'max', 'max');
     }
 
     private function tokenFactory($token, $value)
@@ -464,6 +444,26 @@ class Calc
         $this->stack = new Stack();
         $this->rpnNotation = new Queue();
         $this->tokenizer = new Tokenizer($this->expression);
+
+        $this->tokenizer->registerObject(null, 'number', '[\\d.]+');
+        $this->tokenizer->registerObject(null, 'l_bracket', '\(');
+        $this->tokenizer->registerObject(null, 'r_bracket', '\)');
+        $this->tokenizer->registerObject(null, 'coma', '\,');
+
+        $this->tokenizer->registerObject('operator', 'minus', '\-');
+        $this->tokenizer->registerObject('operator', 'plus', '\+');
+        $this->tokenizer->registerObject('operator', 'divide', '\/');
+        $this->tokenizer->registerObject('operator', 'multiply', '\*');
+        $this->tokenizer->registerObject('operator', 'power', '\^');
+
+        $this->tokenizer->registerObject('constant', 'pi', 'PI');
+        $this->tokenizer->registerObject('constant', 'e', 'E');
+
+        $this->tokenizer->registerObject('function', 'sin', 'sin');
+        $this->tokenizer->registerObject('function', 'cos', 'cos');
+        $this->tokenizer->registerObject('function', 'tg', 'tg');
+        $this->tokenizer->registerObject('function', 'ctg', 'ctg');
+        $this->tokenizer->registerObject('function', 'max', 'max');
 
         //echo "Expression: {$this->expression}\n";
         //echo "-----------------------------\n";
