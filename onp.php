@@ -35,7 +35,10 @@ class Stack extends Struct {
   }
   
   public function top() {
-    // FIXIT:
+    if ($this->size() == 0) {
+        return null;
+    }
+
     return $this->buffer[$this->size()-1];
   }
 }
@@ -355,73 +358,73 @@ class Calc {
     //echo "Converting to postfix notation:\n\n";
     
     foreach($this->tokenizer as $token) {
-      // Jeœli symbol jest liczb¹
+      // Jeï¿½li symbol jest liczbï¿½
       if($token instanceof Number) {
-        // dodaj go do kolejki wyjœcie
+        // dodaj go do kolejki wyjï¿½cie
         $this->rpnNotation->enqueue($token);
       }
-      // Jeœli symbol jest funkcj¹
+      // Jeï¿½li symbol jest funkcjï¿½
       elseif($token instanceof Funct) {
-        // w³ó¿ go na stos.
+        // wï¿½ï¿½ go na stos.
         $this->stack->push($token);
       }
-      // Jeœli symbol jest znakiem oddzielaj¹cym argumenty funkcji (np. przecinek):
+      // Jeï¿½li symbol jest znakiem oddzielajï¿½cym argumenty funkcji (np. przecinek):
       elseif($token instanceof Coma) {
-        // Dopóki najwy¿szy element stosu nie jest lewym nawiasem,
+        // Dopï¿½ki najwyï¿½szy element stosu nie jest lewym nawiasem,
         $leftBracketExists = false;
         while(!($this->stack->top() instanceof L_bracket)) {
-          // zdejmij element ze stosu i dodaj go do kolejki wyjœcie.
+          // zdejmij element ze stosu i dodaj go do kolejki wyjï¿½cie.
           $this->rpnNotation->enqueue($this->stack->pop());
         }
-        // Jeœli lewy nawias nie zosta³ napotkany oznacza to, 
-        // ¿e znaki oddzielaj¹ce zosta³y postawione w z³ym miejscu lub nawiasy s¹ Ÿle umieszczone.
+        // Jeï¿½li lewy nawias nie zostaï¿½ napotkany oznacza to, 
+        // ï¿½e znaki oddzielajï¿½ce zostaï¿½y postawione w zï¿½ym miejscu lub nawiasy sï¿½ ï¿½le umieszczone.
         if(!($this->stack->top() instanceof L_bracket)) {
           throw new Exception('Missing left bracket in expression');
         }
       }
-      // Jeœli symbol jest operatorem, o1
+      // Jeï¿½li symbol jest operatorem, o1
       elseif($token instanceof Operator) {
-        // 1) dopóki na górze stosu znajduje siê operator, o2 taki, ¿e:
+        // 1) dopï¿½ki na gï¿½rze stosu znajduje siï¿½ operator, o2 taki, ï¿½e:
         $stackTop = $this->stack->top();
         if(isset($stackTop) && $stackTop instanceof Operator) {
-          //o1 jest ³¹czny lub lewostronnie ³¹czny i jego kolejnoœæ wykonywania jest mniejsza lub równa kolejnoœci wyk. o2, lub
+          //o1 jest ï¿½ï¿½czny lub lewostronnie ï¿½ï¿½czny i jego kolejnoï¿½ï¿½ wykonywania jest mniejsza lub rï¿½wna kolejnoï¿½ci wyk. o2, lub
           $test1 = (in_array($token->associativity(), array('both', 'left'))) && ($token->priority() <= $stackTop->priority());
-          //o1 jest prawostronnie ³¹czny i jego kolejnoœæ wykonywania jest mniejsza od o2,
+          //o1 jest prawostronnie ï¿½ï¿½czny i jego kolejnoï¿½ï¿½ wykonywania jest mniejsza od o2,
           $test2 = (in_array($token->associativity(), array('right'))) && ($token->priority() < $stackTop->priority());
           if($test1 || $test2) {
-            // zdejmij o2 ze stosu i do³ó¿ go do kolejki wyjœciowej;
+            // zdejmij o2 ze stosu i doï¿½ï¿½ go do kolejki wyjï¿½ciowej;
             $this->rpnNotation->enqueue($this->stack->pop());
           }
         }
-        // 2) w³ó¿ o1 na stos operatorów.
+        // 2) wï¿½ï¿½ o1 na stos operatorï¿½w.
         $this->stack->push($token);
       }
-      // Je¿eli symbol jest lewym nawiasem
+      // Jeï¿½eli symbol jest lewym nawiasem
       elseif($token instanceof L_bracket) {
-        // to w³ó¿ go na stos.
+        // to wï¿½ï¿½ go na stos.
         $this->stack->push($token);
       }
-      // Je¿eli symbol jest prawym nawiasem
+      // Jeï¿½eli symbol jest prawym nawiasem
       elseif($token instanceof R_bracket) {
         $leftBracketExists = false;
         while($operator = $this->stack->pop()) {
-          // dopóki symbol na górze stosu nie jest lewym nawiasem,
+          // dopï¿½ki symbol na gï¿½rze stosu nie jest lewym nawiasem,
           if($operator instanceof L_bracket) {
             $leftBracketExists = true;
             break;
           }
-          // to zdejmuj operatory ze stosu i dok³adaj je do kolejki wyjœcie
+          // to zdejmuj operatory ze stosu i dokï¿½adaj je do kolejki wyjï¿½cie
           else {
             $this->rpnNotation->enqueue($operator);
           }
         }
         
-        // Teraz, jeœli najwy¿szy element na stosie jest funkcj¹, tak¿e do³ó¿ go do kolejki wyjœcie.
+        // Teraz, jeï¿½li najwyï¿½szy element na stosie jest funkcjï¿½, takï¿½e doï¿½ï¿½ go do kolejki wyjï¿½cie.
         if($this->stack->top() instanceof Funct) {
           $this->rpnNotation->enqueue($this->stack->pop());
         }
         
-        // Jeœli stos zostanie opró¿niony i nie napotkasz lewego nawiasu, oznacza to, ¿e nawiasy zosta³y Ÿle umieszczone.
+        // Jeï¿½li stos zostanie oprï¿½niony i nie napotkasz lewego nawiasu, oznacza to, ï¿½e nawiasy zostaï¿½y ï¿½le umieszczone.
         if($this->stack->isEmpty() && !$leftBracketExists) {
           throw new Exception('Missing left bracket in expression');
         }
@@ -429,10 +432,10 @@ class Calc {
       $class = get_class($token);  
       //echo "Token: {$token}\tType: {$token->type}\tClass: {$class}\t\tStack: '{$this->stack}'\t\tOut: '{$this->rpnNotation}'\n";
     }
-    // Jeœli nie ma wiêcej symboli do przeczytania, zdejmuj wszystkie symbole ze stosu (jeœli jakieœ s¹) i dodawaj je do kolejki wyjœcia.
+    // Jeï¿½li nie ma wiï¿½cej symboli do przeczytania, zdejmuj wszystkie symbole ze stosu (jeï¿½li jakieï¿½ sï¿½) i dodawaj je do kolejki wyjï¿½cia.
     while($operator = $this->stack->pop()) {
-      // Powinny to byæ wy³¹cznie operatory, 
-      // jeœli natrafisz na jakiœ nawias, znaczy to, ¿e nawiasy zosta³y Ÿle umieszczone.
+      // Powinny to byï¿½ wyï¿½ï¿½cznie operatory, 
+      // jeï¿½li natrafisz na jakiï¿½ nawias, znaczy to, ï¿½e nawiasy zostaï¿½y ï¿½le umieszczone.
       if($operator instanceof Bracket) {
         throw new Exception('Mismatched brackets in expression');
       }
