@@ -20,33 +20,20 @@ abstract class Struct
     }
 }
 
-class Stack extends Struct
+class Stack extends SplStack
 {
-    public function push($val)
+    public function popMultiple($cnt)
     {
-        $this->buffer[] = $val;
-    }
-
-    public function pop($cnt = null)
-    {
-        if (is_null($cnt)) {
-            return array_pop($this->buffer);
+        if ($cnt > $this->count()) {
+            throw new InvalidArgumentException(
+                sprintf("Can't pop %d elements from datastructure with %d elements", $cnt, $this->count())
+            );
         }
-
         $arg = array();
         while ($cnt--) {
             $arg[] = $this->pop();
         }
         return $arg;
-    }
-
-    public function top()
-    {
-        if ($this->size() == 0) {
-            return null;
-        }
-
-        return $this->buffer[$this->size()-1];
     }
 }
 
@@ -504,8 +491,7 @@ class Calc
             } // Jeśli symbol jest operatorem, o1
             elseif ($token instanceof Operator) {
                 // 1) dopóki na górze stosu znajduje się operator, o2 taki, że:
-                $stackTop = $this->stack->top();
-                if (isset($stackTop) && $stackTop instanceof Operator) {
+                if (!$this->stack->isEmpty() && ($stackTop = $this->stack->top()) && $stackTop instanceof Operator) {
                     // o1 jest łączny lub lewostronnie łączny i jego kolejność wykonywania jest mniejsza
                     // lub równa kolejności wyk. o2, lub
                     $test1 = (in_array($token->associativity(), array('both', 'left')))
@@ -552,7 +538,8 @@ class Calc
         }
         // Jeśli nie ma więcej symboli do przeczytania, zdejmuj wszystkie symbole ze stosu (jeśli jakieś są)
         // i dodawaj je do kolejki wyjścia.
-        while ($operator = $this->stack->pop()) {
+        while (!$this->stack->isEmpty()) {
+            $operator = $this->stack->pop();
             // Powinny to być wyłącznie operatory,
             // jeśli natrafisz na jakiś nawias, znaczy to, że nawiasy zostały źle umieszczone.
             if ($operator instanceof Bracket) {
@@ -574,7 +561,16 @@ class Calc
                 $tempStack->push($token);
             } elseif (($token instanceof Operator) || ($token instanceof Funct)) {
                 /** @var $token Operator|Funct */
-                $arg = $tempStack->pop($token->numOfArgs());
+                if ($tempStack->count() < $token->numOfArgs()) {
+                    throw new Exception(
+                        sprintf(
+                            'Required %d arguments, %d given.',
+                            $token->numOfArgs(),
+                            $tempStack->count()
+                        )
+                    );
+                }
+                $arg = $tempStack->popMultiple($token->numOfArgs());
                 $tempStack->push($token->execute(array_reverse($arg)));
             }
         }
